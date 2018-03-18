@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Linq;
 using System.Text;
-
+using System.Timers;
 
 namespace Server_AdventureGame_wpf.Core
 {
@@ -15,6 +16,13 @@ namespace Server_AdventureGame_wpf.Core
         public Socket Listenfb { get; set; }
         public Connection[] conns { get; set; }
         public int MaxCapacity { get; set; } = 50;
+
+        //心跳时间
+        public int HeartBeatTime = 180;
+        //协议
+        public ProtocolBase proto;
+
+        private Timer timer = new Timer(1000);
 
         private Server()
         {
@@ -59,6 +67,16 @@ namespace Server_AdventureGame_wpf.Core
             Listenfb.Listen(MaxCapacity);
             Listenfb.BeginAccept(AcceptCb, null);
             Console.WriteLine($"[Startup] {Expression} server.");
+
+            timer.AutoReset = true;
+            timer.Enabled = true;
+            timer.Elapsed += HeartBeatElapsed;
+            timer.Start();
+        }
+
+        private void HeartBeatElapsed(object sender, ElapsedEventArgs e)
+        {
+            HeartBeat();
         }
 
         private void AcceptCb(IAsyncResult ar)
@@ -95,7 +113,10 @@ namespace Server_AdventureGame_wpf.Core
             try
             {
                 int count = conn.Socket.EndReceive(ar);
+                conn.BufferCount += count;
                 //数据处理
+                ProcessData(conn);
+
                 //分发消息
 
                 conn.Socket.BeginReceive(conn.BufferRead, conn.BufferCount, conn.BufferRemain, SocketFlags.None, ReceiveCb, conn);
@@ -104,6 +125,68 @@ namespace Server_AdventureGame_wpf.Core
             {
                 Console.WriteLine("[Exception] ReceiveCb Method is error.");
                 Console.WriteLine($"[Error Info] {ex.Message}");
+            }
+        }
+
+        private void ProcessData(Connection conn)
+        {
+            ProtocolBase protocol = proto.Decode(conn.BufferRead, sizeof(int), conn.LenMsg);
+
+        }
+
+        private void MessageHandle(Connection conn, ProtocolBase protocol)
+        {
+            Console.WriteLine($"[Protocol] {protocol.Name}.");
+
+
+        }
+
+        public void Send(Connection conn, ProtocolBase protocol)
+        {
+            byte[] bytes = protocol.Encode();
+            byte[] lenBytes = BitConverter.GetBytes(bytes.Length);
+            byte[] sendBytes = lenBytes.Concat(bytes).ToArray();
+            //未完成
+        }
+
+        public void Broadcast(ProtocolBase protocol)
+        {
+            foreach (Connection  conn in conns)
+            {
+                if (!conn.IsUse) continue;
+                Send(conn, protocol);
+            }
+        }
+
+        public void HeartBeat()
+        {
+            double utcTimeNow = Sys.GetTimeStamp();
+            foreach (Connection conn in conns)
+            {
+                if (conn == null) continue;
+                if (!conn.IsUse) continue;
+                if (conn.LastTickTime < utcTimeNow - HeartBeatTime)
+                {
+                    Console.WriteLine($"[Disconnected] Client:{conn.RemoteAddress}.");
+                    lock (conn)
+                    {
+                        conn.Close();
+                    }
+                }
+            }
+        }
+
+        public void Close()
+        {
+            foreach (Connection conn in conns)
+            {
+                if (conn == null) continue;
+                if (!conn.IsUse) continue;
+                lock (conn)
+                {
+                    Console.WriteLine($"[Disconnected] Client:{conn.RemoteAddress}.");
+                    conn.Close();
+                }
             }
         }
 

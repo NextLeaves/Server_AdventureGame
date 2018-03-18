@@ -54,6 +54,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Core\ProtocolBase.cs" />
+    <Compile Include="Core\ProtocolByte.cs" />
+    <Compile Include="Core\ProtocolStr.cs" />
+    <Compile Include="Sys.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

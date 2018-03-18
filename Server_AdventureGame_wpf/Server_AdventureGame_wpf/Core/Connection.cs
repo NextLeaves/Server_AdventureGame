@@ -16,6 +16,12 @@ namespace Server_AdventureGame_wpf.Core
         public int BufferCount { get; set; }
         public int BufferRemain { get => BUFFER_SIZE - BufferCount; }
         public string RemoteAddress { get => IsUse ? Socket.RemoteEndPoint.ToString() : "[Error] Not Use."; }
+        //粘包分包机制
+        public byte[] LenBytes { get; set; } = new byte[sizeof(Int32)];
+        public Int32 LenMsg { get; set; } = 0;
+        //心跳时间
+        public double LastTickTime { get; set; } = long.MinValue;
+        
 
 
         public Connection()
@@ -31,12 +37,14 @@ namespace Server_AdventureGame_wpf.Core
             Socket = socket;
             IsUse = true;
             BufferCount = 0;
+            LastTickTime = Sys.GetTimeStamp();
         }
 
         public void Close()
         {
             if (!IsUse) Console.WriteLine("[Error] Not Use.");
             Console.WriteLine($"[Disconnection] Client:{RemoteAddress}.");
+            Socket.Shutdown(SocketShutdown.Both);
             Socket.Close();
             IsUse = false;
         }
