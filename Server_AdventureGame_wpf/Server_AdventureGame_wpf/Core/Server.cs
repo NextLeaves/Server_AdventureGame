@@ -5,12 +5,15 @@ using System.Net.Sockets;
 using System.Linq;
 using System.Text;
 using System.Timers;
+using System.Reflection;
+
+using Server_AdventureGame_wpf.Logic;
 
 namespace Server_AdventureGame_wpf.Core
 {
     public class Server
     {
-        public Server _instance;
+        public static Server _instance;
 
         public string Expression { get; set; } = "No Expression";
         public Socket Listenfb { get; set; }
@@ -21,19 +24,27 @@ namespace Server_AdventureGame_wpf.Core
         public int HeartBeatTime = 180;
         //协议
         public ProtocolBase proto;
+        private ConnMsgHandle _connMsgHandle;
+        private PlayerEventHandle _playerEventHandle;
+        private PlayerMsgHandle _playerMsgHandle;
 
         private Timer timer = new Timer(1000);
 
         private Server()
         {
             Listenfb = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            proto = new ProtocolByte();
             for (int index = 0; index < MaxCapacity; index++)
             {
                 conns[index] = new Connection();
             }
+
+            _connMsgHandle = new ConnMsgHandle();
+            _playerEventHandle = new PlayerEventHandle();
+            _playerMsgHandle = new PlayerMsgHandle();
         }
 
-        public Server GetUniqueServer()
+        public static Server GetUniqueServer()
         {
             if (_instance == null)
             {
@@ -77,6 +88,23 @@ namespace Server_AdventureGame_wpf.Core
         private void HeartBeatElapsed(object sender, ElapsedEventArgs e)
         {
             HeartBeat();
+        }
+        public void HeartBeat()
+        {
+            double utcTimeNow = Sys.GetTimeStamp();
+            foreach (Connection conn in conns)
+            {
+                if (conn == null) continue;
+                if (!conn.IsUse) continue;
+                if (conn.LastTickTime < utcTimeNow - HeartBeatTime)
+                {
+                    Console.WriteLine($"[Disconnected] Client:{conn.RemoteAddress}.");
+                    lock (conn)
+                    {
+                        conn.Close();
+                    }
+                }
+            }
         }
 
         private void AcceptCb(IAsyncResult ar)
@@ -130,15 +158,56 @@ namespace Server_AdventureGame_wpf.Core
 
         private void ProcessData(Connection conn)
         {
-            ProtocolBase protocol = proto.Decode(conn.BufferRead, sizeof(int), conn.LenMsg);
+            //消息长度
+            if (conn.BufferCount < sizeof(int)) return;
+            Array.Copy(conn.BufferRead, conn.LenBytes, sizeof(int));
+            conn.LenMsg = BitConverter.ToInt32(conn.LenBytes, 0);
+            if (conn.BufferCount < conn.LenMsg + sizeof(int)) return;
 
+            //协议处理
+            ProtocolBase protocol = proto.Decode(conn.BufferRead, sizeof(int), conn.LenMsg);
+            MessageHandle(conn, protocol);
+
+            //清除消息
+            int count = conn.BufferCount - conn.LenMsg - sizeof(int);
+            Array.Copy(conn.BufferRead, sizeof(int) + conn.LenMsg, conn.BufferRead, 0, count);
+            conn.BufferCount = count;
+            if (conn.BufferCount > 0) ProcessData(conn);
         }
 
         private void MessageHandle(Connection conn, ProtocolBase protocol)
         {
             Console.WriteLine($"[Protocol] {protocol.Name}.");
+            string name = protocol.Name;
+            string methodName = "Msg" + name;
 
+            //连接协议分发
+            if(conn.Player==null||name =="HeartBeat"||name == "Logout")
+            {
+                MethodInfo mInfo = _connMsgHandle.GetType().GetMethod(methodName);
+                if (mInfo == null)
+                {
+                    Console.WriteLine($"[Error] ConnMsgHandle class have not {methodName}.");
+                    return;
+                }
+                object[] objs = new object[] { conn, protocol };
+                Console.WriteLine($"[ConnHandle] {conn.RemoteAddress} : {name}.");
+                mInfo.Invoke(_connMsgHandle, objs);
+            }
+            //角色协议分发
+            else
+            {
+                MethodInfo mInfo = _playerMsgHandle.GetType().GetMethod(methodName);
+                if (mInfo == null)
+                {
+                    Console.WriteLine($"[Error] PlayerMsgHandle class have not {methodName}.");
+                    return;
+                }
 
+                object[] objs = new object[] { conn.Player, protocol };
+                Console.WriteLine($"[PlayerHandle] {conn.Player.Id} : {name}.");
+                mInfo.Invoke(_playerMsgHandle, objs);
+            }
         }
 
         public void Send(Connection conn, ProtocolBase protocol)
@@ -146,33 +215,37 @@ namespace Server_AdventureGame_wpf.Core
             byte[] bytes = protocol.Encode();
             byte[] lenBytes = BitConverter.GetBytes(bytes.Length);
             byte[] sendBytes = lenBytes.Concat(bytes).ToArray();
-            //未完成
+
+            try
+            {
+                conn.Socket.BeginSend(sendBytes, 0, sendBytes.Length, SocketFlags.None, null, null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Error] Send Method is error.");
+                Console.WriteLine(ex.Message);
+            }
+
         }
 
         public void Broadcast(ProtocolBase protocol)
         {
-            foreach (Connection  conn in conns)
+            foreach (Connection conn in conns)
             {
                 if (!conn.IsUse) continue;
                 Send(conn, protocol);
             }
         }
 
-        public void HeartBeat()
+        public void PrintInformation()
         {
-            double utcTimeNow = Sys.GetTimeStamp();
+            Console.WriteLine("---Server Login Infomation---");
             foreach (Connection conn in conns)
             {
                 if (conn == null) continue;
                 if (!conn.IsUse) continue;
-                if (conn.LastTickTime < utcTimeNow - HeartBeatTime)
-                {
-                    Console.WriteLine($"[Disconnected] Client:{conn.RemoteAddress}.");
-                    lock (conn)
-                    {
-                        conn.Close();
-                    }
-                }
+
+                Console.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id:{conn.Player.Id}.");
             }
         }
 

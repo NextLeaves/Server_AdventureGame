@@ -13,6 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using Server_AdventureGame_wpf.Core;
+
 namespace Server_AdventureGame_wpf
 {
     /// <summary>
@@ -23,6 +25,11 @@ namespace Server_AdventureGame_wpf
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void startup_btn_Click(object sender, RoutedEventArgs e)
+        {
+            Server.GetUniqueServer().Startup("127.0.0.1", 1234);
         }
     }
 }

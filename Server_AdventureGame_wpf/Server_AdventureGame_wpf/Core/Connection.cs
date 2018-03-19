@@ -4,6 +4,8 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 
+using Server_AdventureGame_wpf.Middle;
+
 namespace Server_AdventureGame_wpf.Core
 {
     public class Connection
@@ -21,6 +23,8 @@ namespace Server_AdventureGame_wpf.Core
         public Int32 LenMsg { get; set; } = 0;
         //心跳时间
         public double LastTickTime { get; set; } = long.MinValue;
+        //抽象玩家对象
+        public Player Player { get; set; }
         
 
 
@@ -38,6 +42,11 @@ namespace Server_AdventureGame_wpf.Core
             IsUse = true;
             BufferCount = 0;
             LastTickTime = Sys.GetTimeStamp();
+        }
+
+        public void Send(ProtocolBase protocol)
+        {
+            Server.GetUniqueServer().Send(this, protocol);
         }
 
         public void Close()

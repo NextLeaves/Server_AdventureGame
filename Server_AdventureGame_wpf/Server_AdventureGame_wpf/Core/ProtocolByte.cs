@@ -14,6 +14,7 @@ namespace Server_AdventureGame_wpf.Core
         {
             ProtocolBase protocol = new ProtocolByte();
             (protocol as ProtocolByte).Message = bufferRead;
+
             if (!(length < start + sizeof(int)))
             {
                 StringBuilder sb = new StringBuilder();
@@ -22,7 +23,7 @@ namespace Server_AdventureGame_wpf.Core
                     sb.Append(bufferRead.ToString());
                 }
                 protocol.Name = sb.ToString();
-            }                
+            }
 
             return protocol;
         }
@@ -59,6 +60,29 @@ namespace Server_AdventureGame_wpf.Core
         {
             int end = 0;
             return GetString(start, ref end);
+        }
+
+        public void AddInt(int num)
+        {
+            byte[] numBytes = BitConverter.GetBytes(num);
+            if (Message == null)
+                Message = numBytes;
+            else
+                Message = Message.Concat(numBytes).ToArray();
+        }
+
+        public int GetInt(int start, ref int end)
+        {
+            if (Message == null) return 0;
+            if (Message.Length < start + sizeof(int)) return 0;
+            end = start + sizeof(int);
+            return BitConverter.ToInt32(Message, start);
+        }
+
+        public int GetInt(int start)
+        {
+            int end = 0;
+            return GetInt(start, ref end);
         }
     }
 }
