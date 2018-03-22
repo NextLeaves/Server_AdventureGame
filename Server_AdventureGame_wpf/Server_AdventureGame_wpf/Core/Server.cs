@@ -13,7 +13,7 @@ namespace Server_AdventureGame_wpf.Core
 {
     public class Server
     {
-        public static Server _instance;
+        public static Server _instance = new Server();
 
         public string Expression { get; set; } = "No Expression";
         public Socket Listenfb { get; set; }
@@ -34,6 +34,7 @@ namespace Server_AdventureGame_wpf.Core
         {
             Listenfb = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             proto = new ProtocolByte();
+            conns = new Connection[MaxCapacity];
             for (int index = 0; index < MaxCapacity; index++)
             {
                 conns[index] = new Connection();
@@ -46,14 +47,12 @@ namespace Server_AdventureGame_wpf.Core
 
         public static Server GetUniqueServer()
         {
-            if (_instance == null)
+
+            lock (_instance)
             {
-                lock (_instance)
-                {
-                    return new Server();
-                }
+                return _instance;
             }
-            return _instance;
+
         }
 
         public int ContributeIndex()
@@ -165,14 +164,37 @@ namespace Server_AdventureGame_wpf.Core
             if (conn.BufferCount < conn.LenMsg + sizeof(int)) return;
 
             //协议处理
-            ProtocolBase protocol = proto.Decode(conn.BufferRead, sizeof(int), conn.LenMsg);
-            MessageHandle(conn, protocol);
 
-            //清除消息
-            int count = conn.BufferCount - conn.LenMsg - sizeof(int);
-            Array.Copy(conn.BufferRead, sizeof(int) + conn.LenMsg, conn.BufferRead, 0, count);
-            conn.BufferCount = count;
-            if (conn.BufferCount > 0) ProcessData(conn);
+            string msg = Encoding.Default.GetString(conn.BufferRead, sizeof(Int32), conn.BufferCount);
+            Console.WriteLine(msg);
+            string[] letters = msg.Split(' ');
+            foreach (string s in letters)
+            {
+                Console.WriteLine(s);
+            }
+
+            Console.WriteLine("Msg" + letters[0]);
+
+            Console.WriteLine("--------------------");
+
+            string ms = "";
+
+            for (int i = 0; i < conn.BufferRead.Length; i++)
+            {
+                int b = (int)conn.BufferRead[i];
+                ms += b.ToString() + " ";
+            }
+            Console.WriteLine(ms);
+
+
+            //ProtocolBase protocol = proto.Decode(conn.BufferRead, 0, conn.LenMsg);
+            //MessageHandle(conn, protocol);
+
+            ////清除消息
+            //int count = conn.BufferCount - conn.LenMsg - sizeof(int);
+            //Array.Copy(conn.BufferRead, sizeof(int) + conn.LenMsg, conn.BufferRead, 0, count);
+            //conn.BufferCount = count;
+            //if (conn.BufferCount > 0) ProcessData(conn);
         }
 
         private void MessageHandle(Connection conn, ProtocolBase protocol)
@@ -182,7 +204,7 @@ namespace Server_AdventureGame_wpf.Core
             string methodName = "Msg" + name;
 
             //连接协议分发
-            if(conn.Player==null||name =="HeartBeat"||name == "Logout")
+            if (conn.Player == null || name == "HeartBeat" || name == "Logout")
             {
                 MethodInfo mInfo = _connMsgHandle.GetType().GetMethod(methodName);
                 if (mInfo == null)

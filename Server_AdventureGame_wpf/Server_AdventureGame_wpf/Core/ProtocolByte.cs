@@ -2,81 +2,90 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Server_AdventureGame_wpf.Core
 {
     public class ProtocolByte : ProtocolBase
     {
-        public byte[] Message { get; set; }
+        public byte[] Data { get; set; }
+
+        public ProtocolByte()
+        {
+
+        }
+
+        private void InitInfomation()
+        {
+            this.Name = GetString(0);
+            if (Data == null) return;
+            for (int i = 0; i < Data.Length; i++)
+            {
+                int b = (int)Data[i];
+                Expression += b.ToString() + " ";
+            }
+
+        }
 
         public override ProtocolBase Decode(byte[] bufferRead, int start, int length)
         {
             ProtocolBase protocol = new ProtocolByte();
-            (protocol as ProtocolByte).Message = bufferRead;
-
-            if (!(length < start + sizeof(int)))
-            {
-                StringBuilder sb = new StringBuilder();
-                for (int i = start; i < sizeof(int); i++)
-                {
-                    sb.Append(bufferRead.ToString());
-                }
-                protocol.Name = sb.ToString();
-            }
-
+            (protocol as ProtocolByte).Data = new byte[length];
+            Array.Copy(bufferRead, (protocol as ProtocolByte).Data, length);
+            //刷新协议
+            InitInfomation();
             return protocol;
         }
 
+
+
         public override byte[] Encode()
         {
-            return Message;
+            return Data;
         }
 
         public void AddString(string message)
         {
-            int lenMessage = message.Length;
-            byte[] lenBytes = BitConverter.GetBytes(lenMessage);
-            byte[] messageBytes = Encoding.UTF8.GetBytes(message);
-            if (Message == null)
-                Message = lenBytes.Concat(messageBytes).ToArray();
+            message += ",";
+            int lenMsg = message.Length;
+            byte[] lenMsgBytes = BitConverter.GetBytes(lenMsg);
+            byte[] MsgBytes = Encoding.Default.GetBytes(message);
+            if (Data == null)
+                Data = lenMsgBytes.Concat(MsgBytes).ToArray();
             else
-                Message = Message.Concat(lenBytes).Concat(messageBytes).ToArray();
+                Data = Data.Concat(lenMsgBytes).Concat(MsgBytes).ToArray();
+
+            InitInfomation();
         }
 
-        public string GetString(int start, ref int end)
+        public string GetString(int indexof)
         {
-            if (Message == null) return "Error";
-            if (Message.Length < start + sizeof(int)) return "Error";
-            int lenMessage = BitConverter.ToInt32(Message, start);
-            if (Message.Length < start + sizeof(int) + lenMessage) return "Error";
+            if (Data == null) return "Error Data In ProtocolByte";
+            if (Data.Length < sizeof(Int32)) return "Error Data In ProtocolByte";
+            int lenMsg = BitConverter.ToInt32(Data, 0);
+            if (Data.Length < sizeof(Int32) + lenMsg) return "Error Data In ProtocolByte";
 
-            string message = Encoding.UTF8.GetString(Message, start + sizeof(int), lenMessage);
-            end = start + sizeof(int) + lenMessage;
-            return message;
-        }
-
-        public string GetString(int start)
-        {
-            int end = 0;
-            return GetString(start, ref end);
+            string msgData = Encoding.UTF8.GetString(Data, sizeof(Int32), lenMsg);
+            string[] indexs = msgData.Split(',');
+            if (indexof >= 0 && indexof < indexs.Length)
+                return indexs[indexof];
+            else
+                throw new IndexOutOfRangeException("indexof must be between 0 and indexs's length.");
         }
 
         public void AddInt(int num)
         {
-            byte[] numBytes = BitConverter.GetBytes(num);
-            if (Message == null)
-                Message = numBytes;
-            else
-                Message = Message.Concat(numBytes).ToArray();
+            string message = num.ToString();
+            AddString(message);
         }
 
+        /*   感觉存在问题，几乎不怎么用到，以字符串为主要解析方式
         public int GetInt(int start, ref int end)
         {
-            if (Message == null) return 0;
-            if (Message.Length < start + sizeof(int)) return 0;
+            if (Data == null) return 0;
+            if (Data.Length < start + sizeof(int)) return 0;
             end = start + sizeof(int);
-            return BitConverter.ToInt32(Message, start);
+            return BitConverter.ToInt32(Data, start);
         }
 
         public int GetInt(int start)
@@ -84,5 +93,7 @@ namespace Server_AdventureGame_wpf.Core
             int end = 0;
             return GetInt(start, ref end);
         }
+        */
     }
+
 }

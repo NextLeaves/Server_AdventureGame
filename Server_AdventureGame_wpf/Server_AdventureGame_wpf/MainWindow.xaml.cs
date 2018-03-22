@@ -22,14 +22,17 @@ namespace Server_AdventureGame_wpf
     /// </summary>
     public partial class MainWindow : Window
     {
+        private Server _server;
+
         public MainWindow()
         {
+            _server = Server._instance;
             InitializeComponent();
         }
 
         private void startup_btn_Click(object sender, RoutedEventArgs e)
         {
-            Server.GetUniqueServer().Startup("127.0.0.1", 1234);
+            _server.Startup("127.0.0.1", 1234);
         }
     }
 }

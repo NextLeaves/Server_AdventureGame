@@ -22,12 +22,11 @@ namespace Server_AdventureGame_wpf.Logic
         }
 
         public void MsgLogin(Connection conn,ProtocolBase protocol)
-        {
-            int start = 0;
+        {            
             ProtocolByte proto = protocol as ProtocolByte;
-            string protoName = proto.GetString(start, ref start);
-            string id = proto.GetString(start, ref start);
-            string pw = proto.GetString(start, ref start);
+            string protoName = proto.Name;
+            string id = proto.GetString(1);
+            string pw = proto.GetString(2);
 
             ProtocolByte protoRet = new ProtocolByte();
             protoRet.AddString("Login");
