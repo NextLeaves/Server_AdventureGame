@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define RELEASE
+
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -23,7 +25,7 @@ namespace Server_AdventureGame_wpf.Core
         //心跳时间
         public int HeartBeatTime = 180;
         //协议
-        public ProtocolBase proto;
+        public ProtocolBase proto = new ProtocolByte();
         private ConnMsgHandle _connMsgHandle;
         private PlayerEventHandle _playerEventHandle;
         private PlayerMsgHandle _playerMsgHandle;
@@ -33,7 +35,6 @@ namespace Server_AdventureGame_wpf.Core
         private Server()
         {
             Listenfb = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            proto = new ProtocolByte();
             conns = new Connection[MaxCapacity];
             for (int index = 0; index < MaxCapacity; index++)
             {
@@ -143,7 +144,6 @@ namespace Server_AdventureGame_wpf.Core
                 conn.BufferCount += count;
                 //数据处理
                 ProcessData(conn);
-
                 //分发消息
 
                 conn.Socket.BeginReceive(conn.BufferRead, conn.BufferCount, conn.BufferRemain, SocketFlags.None, ReceiveCb, conn);
@@ -163,21 +163,27 @@ namespace Server_AdventureGame_wpf.Core
             conn.LenMsg = BitConverter.ToInt32(conn.LenBytes, 0);
             if (conn.BufferCount < conn.LenMsg + sizeof(int)) return;
 
-            //协议处理
-
-            ProtocolBase protocol=proto.Decode(conn.BufferRead, 0, conn.LenMsg+sizeof(Int32));
+#if RELEASE
+            //协议处理                       
+            ProtocolBase protocol = proto.Decode(conn.BufferRead, 0, conn.BufferCount);
             MessageHandle(conn, protocol);
+
+#elif DEBUG
+            string m = Encoding.UTF8.GetString(conn.BufferRead, sizeof(Int32), conn.BufferCount);
+            Console.WriteLine(m);
+#endif
 
             //清除消息
             int count = conn.BufferCount - conn.LenMsg - sizeof(int);
             Array.Copy(conn.BufferRead, sizeof(int) + conn.LenMsg, conn.BufferRead, 0, count);
             conn.BufferCount = count;
-            if (conn.BufferCount > 0) ProcessData(conn);       
+            if (conn.BufferCount > 0) ProcessData(conn);
         }
 
         private void MessageHandle(Connection conn, ProtocolBase protocol)
         {
             Console.WriteLine($"[Protocol] {protocol.Name}.");
+            Console.WriteLine($"[Protocol] {protocol.Expression}");
             string name = protocol.Name;
             string methodName = "Msg" + name;
 
@@ -216,10 +222,10 @@ namespace Server_AdventureGame_wpf.Core
             {
                 conn.Send(protocol);
             }
-            catch(SocketException ex)
-            {                
+            catch (SocketException ex)
+            {
                 Console.WriteLine($"[Error] Send Method is error.");
-                Console.WriteLine(ex.Message); 
+                Console.WriteLine(ex.Message);
             }
             catch (Exception ex)
             {
@@ -245,7 +251,7 @@ namespace Server_AdventureGame_wpf.Core
             {
                 if (conn == null) continue;
                 if (!conn.IsUse) continue;
-                if (conn.Player == null)Console.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id is not read.");
+                if (conn.Player == null) Console.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id is not read.");
                 Console.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id:{conn.Player.Id}.");
             }
         }

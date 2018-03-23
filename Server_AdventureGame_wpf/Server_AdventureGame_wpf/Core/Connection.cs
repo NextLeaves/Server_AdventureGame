@@ -46,7 +46,7 @@ namespace Server_AdventureGame_wpf.Core
 
         public void Send(ProtocolBase protocol)
         {
-            if (!IsUse) throw SocketException("THis Connection is not used.");
+            if (!IsUse) throw new NotImplementedException("THis Connection is not used.");
             byte[] sendBytes = protocol.Encode();
             Socket.BeginSend(sendBytes,0, sendBytes.Length, SocketFlags.None, null, null);
         }

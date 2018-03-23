@@ -8,26 +8,30 @@ namespace Server_AdventureGame_wpf.Core
 
     public class ProtocolStr : ProtocolBase
     {
+        private string _name;
+        private string _expression;
+
         public string Data { get; set; }
+        public override string Name { get => _name; set => _name = value; }
+        public override string Expression { get => _expression; set => _expression = value; }
 
         public ProtocolStr()
         {
-            Data = string.Empty;
+            _name = "";
+            _expression = "";
         }
 
         private void InitInfomation()
         {
-            this.Name = GetString(0);
-            if (Data == null) return;
-            Expression = Data;
-
+            _name = GetString(0);            
+            _expression = Data;
         }
 
         public override ProtocolBase Decode(byte[] bufferRead, int start, int length)
         {
             ProtocolStr proto = new ProtocolStr();
             byte[] tempBuffer = new byte[length - sizeof(Int32)];
-            Array.Copy(bufferRead, sizeof(Int32), tempBuffer, 0, length);
+            Array.Copy(bufferRead, sizeof(Int32), tempBuffer, 0, tempBuffer.Length);
             proto.Data = Encoding.UTF8.GetString(tempBuffer);
             //刷新协议
             InitInfomation();
@@ -43,30 +47,20 @@ namespace Server_AdventureGame_wpf.Core
             return encodingMsg;
         }
 
-        public void AddString(string message)
+        public void AddInfo<T>(T message)
         {
-            if (Data == null) return;
-            Data += message + ",";
-            InitInfomation();
+            Expression += message.ToString() + " ";
         }
 
         public string GetString(int indexof)
-        {
-            byte[] checkMsgBytes = Encode();
-            if (checkMsgBytes == null) return "Error Data In ProtocolByte";
-            string[] indexs = Data.Split(',');
+        {            
+            string[] indexs = Data.Split(' ');
             if (indexof >= 0 && indexof < indexs.Length)
-                return indexs[indexof];
+                return indexs[indexof];            
             else
                 throw new IndexOutOfRangeException("indexof must be between 0 and indexs's length.");
         }
-
-        public void AddInt(int num)
-        {
-            string message = num.ToString();
-            AddString(message);
-        }
-
+        
         /*   感觉存在问题，几乎不怎么用到，以字符串为主要解析方式
         public int GetInt(int start, ref int end)
         {
