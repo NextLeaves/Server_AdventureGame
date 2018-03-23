@@ -8,54 +8,52 @@ namespace Server_AdventureGame_wpf.Core
 {
     public class ProtocolByte : ProtocolBase
     {
+        private string _name;
+        private string _expression;
+
         public byte[] Data { get; set; }
+        public override string Name { get => _name; set => _name = value; }
+        public override string Expression { get => _expression; set => _expression = value; }
 
         public ProtocolByte()
         {
-
+            _name = "";
+            _expression = "";
         }
 
         private void InitInfomation()
         {
-            this.Name = GetString(0);
-            if (Data == null) return;
-            for (int i = 0; i < Data.Length; i++)
-            {
-                int b = (int)Data[i];
-                Expression += b.ToString() + " ";
-            }
-
+            _name = GetString(0);
+            _expression = GetString(-1);
         }
 
         public override ProtocolBase Decode(byte[] bufferRead, int start, int length)
-        {
-            ProtocolBase protocol = new ProtocolByte();
-            (protocol as ProtocolByte).Data = new byte[length];
-            Array.Copy(bufferRead, (protocol as ProtocolByte).Data, length);
+        {            
+            this.Data = new byte[length];
+            Array.Copy(bufferRead, 0, Data, 0, length);
             //刷新协议
             InitInfomation();
-            return protocol;
+            return this;
         }
 
 
 
         public override byte[] Encode()
         {
-            return Data;
-        }
-
-        public void AddString(string message)
-        {
-            message += ",";
-            int lenMsg = message.Length;
+            int lenMsg = Expression.Length;
             byte[] lenMsgBytes = BitConverter.GetBytes(lenMsg);
-            byte[] MsgBytes = Encoding.Default.GetBytes(message);
+            byte[] MsgBytes = Encoding.Default.GetBytes(Expression);
             if (Data == null)
                 Data = lenMsgBytes.Concat(MsgBytes).ToArray();
             else
                 Data = Data.Concat(lenMsgBytes).Concat(MsgBytes).ToArray();
 
-            InitInfomation();
+            return Data;
+        }
+
+        public void AddInfo<T>(T message)
+        {
+            Expression += message.ToString() + " ";
         }
 
         public string GetString(int indexof)
@@ -66,17 +64,13 @@ namespace Server_AdventureGame_wpf.Core
             if (Data.Length < sizeof(Int32) + lenMsg) return "Error Data In ProtocolByte";
 
             string msgData = Encoding.UTF8.GetString(Data, sizeof(Int32), lenMsg);
-            string[] indexs = msgData.Split(',');
+            string[] indexs = msgData.Split(' ');
             if (indexof >= 0 && indexof < indexs.Length)
                 return indexs[indexof];
+            else if (indexof == -1)
+                return msgData;
             else
                 throw new IndexOutOfRangeException("indexof must be between 0 and indexs's length.");
-        }
-
-        public void AddInt(int num)
-        {
-            string message = num.ToString();
-            AddString(message);
         }
 
         /*   感觉存在问题，几乎不怎么用到，以字符串为主要解析方式

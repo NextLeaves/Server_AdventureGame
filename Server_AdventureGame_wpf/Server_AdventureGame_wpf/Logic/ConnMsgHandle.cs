@@ -29,10 +29,17 @@ namespace Server_AdventureGame_wpf.Logic
             string pw = proto.GetString(2);
 
             ProtocolByte protoRet = new ProtocolByte();
-            protoRet.AddString("Login");
+            protoRet.AddInfo<string>("Login");
             if (id == "123" && pw == "123")
             {
-                protoRet.AddInt(1);
+                Console.WriteLine($"[Conected] User:{id},Info:{conn.RemoteAddress}.");
+                protoRet.AddInfo<int>(1);
+                conn.Send(protoRet);
+                return;
+            }
+            else
+            {
+                protoRet.AddInfo<int>(-1);
                 conn.Send(protoRet);
                 return;
             }
