@@ -32,6 +32,7 @@ namespace Server_AdventureGame_wpf.Logic
             protoRet.AddString("Login");
             if (id == "123" && pw == "123")
             {
+                Console.WriteLine($"[Conected] User:{id},Info:{conn.RemoteAddress}.");
                 protoRet.AddInt(1);
                 conn.Send(protoRet);
                 return;

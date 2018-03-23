@@ -165,36 +165,14 @@ namespace Server_AdventureGame_wpf.Core
 
             //协议处理
 
-            string msg = Encoding.Default.GetString(conn.BufferRead, sizeof(Int32), conn.BufferCount);
-            Console.WriteLine(msg);
-            string[] letters = msg.Split(' ');
-            foreach (string s in letters)
-            {
-                Console.WriteLine(s);
-            }
+            ProtocolBase protocol=proto.Decode(conn.BufferRead, 0, conn.LenMsg+sizeof(Int32));
+            MessageHandle(conn, protocol);
 
-            Console.WriteLine("Msg" + letters[0]);
-
-            Console.WriteLine("--------------------");
-
-            string ms = "";
-
-            for (int i = 0; i < conn.BufferRead.Length; i++)
-            {
-                int b = (int)conn.BufferRead[i];
-                ms += b.ToString() + " ";
-            }
-            Console.WriteLine(ms);
-
-
-            //ProtocolBase protocol = proto.Decode(conn.BufferRead, 0, conn.LenMsg);
-            //MessageHandle(conn, protocol);
-
-            ////清除消息
-            //int count = conn.BufferCount - conn.LenMsg - sizeof(int);
-            //Array.Copy(conn.BufferRead, sizeof(int) + conn.LenMsg, conn.BufferRead, 0, count);
-            //conn.BufferCount = count;
-            //if (conn.BufferCount > 0) ProcessData(conn);
+            //清除消息
+            int count = conn.BufferCount - conn.LenMsg - sizeof(int);
+            Array.Copy(conn.BufferRead, sizeof(int) + conn.LenMsg, conn.BufferRead, 0, count);
+            conn.BufferCount = count;
+            if (conn.BufferCount > 0) ProcessData(conn);       
         }
 
         private void MessageHandle(Connection conn, ProtocolBase protocol)
@@ -234,13 +212,14 @@ namespace Server_AdventureGame_wpf.Core
 
         public void Send(Connection conn, ProtocolBase protocol)
         {
-            byte[] bytes = protocol.Encode();
-            byte[] lenBytes = BitConverter.GetBytes(bytes.Length);
-            byte[] sendBytes = lenBytes.Concat(bytes).ToArray();
-
             try
             {
-                conn.Socket.BeginSend(sendBytes, 0, sendBytes.Length, SocketFlags.None, null, null);
+                conn.Send(protocol);
+            }
+            catch(SocketException ex)
+            {                
+                Console.WriteLine($"[Error] Send Method is error.");
+                Console.WriteLine(ex.Message); 
             }
             catch (Exception ex)
             {
@@ -266,7 +245,7 @@ namespace Server_AdventureGame_wpf.Core
             {
                 if (conn == null) continue;
                 if (!conn.IsUse) continue;
-
+                if (conn.Player == null)Console.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id is not read.");
                 Console.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id:{conn.Player.Id}.");
             }
         }
