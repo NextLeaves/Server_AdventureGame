@@ -5,19 +5,20 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Server_AdventureGame_wpf.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace Server_AdventureGame_wpf.Middle
 {
     public class Player
-    {
-        public string Id { get; set; }
+    {               
+        public string Account { get; set; }
         public Connection Conn { get; set; }
         public PlayerData Data { get; set; }
         public PlayerTempData TempData { get; set; }
 
-        public Player(string id,Connection conn)
+        public Player(string account,Connection conn)
         {
-            Id = id;
+            Account = account;
             this.Conn = conn;
             TempData = new PlayerTempData();
         }
@@ -28,14 +29,14 @@ namespace Server_AdventureGame_wpf.Middle
             Server.GetUniqueServer().Send(Conn, protocol);
         }
 
-        public static bool KickOff(string id,ProtocolBase protocol)
+        public static bool KickOff(string account, ProtocolBase protocol)
         {
             foreach (Connection  conn in Server.GetUniqueServer().conns)
             {
                 if (conn == null) continue;
                 if (!conn.IsUse) continue;
                 if (conn.Player == null) continue;
-                if (conn.Player.Id == id)
+                if (conn.Player.Account == account)
                 {
                     lock (conn.Player)
                     {
