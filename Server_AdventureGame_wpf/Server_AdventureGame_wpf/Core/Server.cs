@@ -26,9 +26,9 @@ namespace Server_AdventureGame_wpf.Core
         public int HeartBeatTime = 180;
         //协议
         public ProtocolBase proto = new ProtocolByte();
-        private ConnMsgHandle _connMsgHandle;
-        private PlayerEventHandle _playerEventHandle;
-        private PlayerMsgHandle _playerMsgHandle;
+        public ConnMsgHandle _connMsgHandle;
+        public PlayerEventHandle _playerEventHandle;
+        public PlayerMsgHandle _playerMsgHandle;
 
         private Timer timer = new Timer(1000);
 
@@ -54,7 +54,7 @@ namespace Server_AdventureGame_wpf.Core
                 return _instance;
             }
 
-        }
+        }        
 
         public int ContributeIndex()
         {
@@ -211,7 +211,7 @@ namespace Server_AdventureGame_wpf.Core
                 }
 
                 object[] objs = new object[] { conn.Player, protocol };
-                Console.WriteLine($"[PlayerHandle] {conn.Player.Id} : {name}.");
+                Console.WriteLine($"[PlayerHandle] {conn.Player.Account} : {name}.");
                 mInfo.Invoke(_playerMsgHandle, objs);
             }
         }
@@ -252,7 +252,7 @@ namespace Server_AdventureGame_wpf.Core
                 if (conn == null) continue;
                 if (!conn.IsUse) continue;
                 if (conn.Player == null) Console.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id is not read.");
-                Console.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id:{conn.Player.Id}.");
+                Console.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id:{conn.Player.Account}.");
             }
         }
 

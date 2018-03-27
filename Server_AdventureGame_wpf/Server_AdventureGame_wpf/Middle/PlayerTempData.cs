@@ -8,5 +8,6 @@ namespace Server_AdventureGame_wpf.Middle
 {
     public class PlayerTempData
     {
+
     }
 }

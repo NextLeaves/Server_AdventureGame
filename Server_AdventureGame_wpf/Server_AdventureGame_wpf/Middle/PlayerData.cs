@@ -8,6 +8,6 @@ namespace Server_AdventureGame_wpf.Middle
 {
     public class PlayerData
     {
-
+        public int? Score { get; set; } = 100;
     }
 }

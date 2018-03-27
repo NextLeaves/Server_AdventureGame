@@ -70,6 +70,7 @@
     <Compile Include="Data\User.cs" />
     <Compile Include="Data\UserContext.cs" />
     <Compile Include="Logic\ConnMsgHandle.cs" />
+    <Compile Include="Logic\NamesOfProtocol.cs" />
     <Compile Include="Logic\PlayerEventHandle.cs" />
     <Compile Include="Logic\PlayerMsgHandle.cs" />
     <Compile Include="Middle\Player.cs" />

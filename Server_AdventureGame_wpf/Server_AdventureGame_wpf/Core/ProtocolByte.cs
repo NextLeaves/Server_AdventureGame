@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -28,7 +27,7 @@ namespace Server_AdventureGame_wpf.Core
         }
 
         public override ProtocolBase Decode(byte[] bufferRead, int start, int length)
-        {            
+        {
             this.Data = new byte[length];
             Array.Copy(bufferRead, 0, Data, 0, length);
             //刷新协议

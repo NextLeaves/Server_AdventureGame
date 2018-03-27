@@ -33,6 +33,6 @@ namespace Server_AdventureGame_wpf
         private void startup_btn_Click(object sender, RoutedEventArgs e)
         {
             _server.Startup("127.0.0.1", 1234);
-        }
+        }        
     }
 }

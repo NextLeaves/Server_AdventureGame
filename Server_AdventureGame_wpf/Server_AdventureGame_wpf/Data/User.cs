@@ -15,16 +15,21 @@ namespace Server_AdventureGame_wpf.Data
         public string Account { get; set; }
         public string Password { get; set; }
         public List<string> LastPd { get; set; }
+        public int CommandCode { get; set; }
 
         public User()
         {
             LastPd = new List<string>();
+            CommandCode = int.MinValue;
         }
 
         public User(string account, string password) : this()
         {
             Account = account;
             Password = password;
+            LastPd.Add(account);
+            CommandCode = Sys.CodeGenerator();
         }
+
     }
 }

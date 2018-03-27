@@ -13,7 +13,7 @@ namespace Server_AdventureGame_wpf.Data
 {
     public class DataManager
     {
-        private static DataManager _instance;
+        private static DataManager _instance = new DataManager();
 
         private DataManager()
         {
@@ -32,7 +32,7 @@ namespace Server_AdventureGame_wpf.Data
             return _instance;
         }
 
-        public bool IsSafeString(string str) => !Regex.IsMatch(str, @"[-|;|,|/|\|(|)|[|]|{|}|%|@|*|!|`|丶|灬]");
+        public bool IsSafeString(string str) => !Regex.IsMatch(str, @"[-|,|*|(|)]");
 
         public bool CanRegister(string account)
         {
@@ -56,8 +56,9 @@ namespace Server_AdventureGame_wpf.Data
             }
         }
 
-        public bool Register(string account, string password)
+        public bool Register(string account, string password, out int code)
         {
+            code = int.MinValue;
             if (!IsSafeString(account) || !IsSafeString(password))
             {
                 //非法字符
@@ -67,6 +68,7 @@ namespace Server_AdventureGame_wpf.Data
             using (var db = new UserContext())
             {
                 User user = new User(account, password);
+                code = user.CommandCode;
                 db.Users.Add(user);
 
                 db.SaveChanges();
@@ -182,7 +184,46 @@ namespace Server_AdventureGame_wpf.Data
             {
                 var queryResult = db.Users.Select<User, bool>((s) => s.Account == account && s.Password == password);
 
-                return queryResult == null ? false : true;
+                return queryResult.Count() > 0 ? true : false;
+            }
+        }
+
+        public bool FindoutPassword(string account, int commandCode)
+        {
+
+            if (!IsSafeString(account) || !IsSafeString(Convert.ToString(commandCode)))
+            {
+                //非法字符
+                return false;
+            }
+
+            using (var db = new UserContext())
+            {
+                var queryResult = db.Users.Where(u => u.Account == account && u.CommandCode == commandCode).Select(u => u);
+                if (queryResult.Count() == 1) return true;
+            }
+
+            return false;
+        }
+
+        public bool ChangePassword(string account, string password)
+        {
+            if (!IsSafeString(account) || !IsSafeString(password))
+            {
+                //非法字符
+                return false;
+            }
+
+            using (var db = new UserContext())
+            {
+                var queryResult = db.Users.Where(u => u.Account == account).Select(u => u);
+
+                foreach (var item in queryResult)
+                {
+                    item.Password = password;
+                    item.LastPd.Add(password);
+                }
+                return true;
             }
         }
 

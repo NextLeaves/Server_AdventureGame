@@ -13,5 +13,11 @@ namespace Server_AdventureGame_wpf
             TimeSpan time = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0);
             return time.TotalSeconds;
         }
+
+        public static int CodeGenerator()
+        {
+            Random rand = new Random();
+            return rand.Next(100000, 999999);
+        }
     }
 }
