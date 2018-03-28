@@ -25,7 +25,7 @@ namespace Server_AdventureGame_wpf.Core
         public double LastTickTime { get; set; } = long.MinValue;
         //抽象玩家对象
         public Player Player { get; set; }
-        
+
 
 
         public Connection()
@@ -48,7 +48,8 @@ namespace Server_AdventureGame_wpf.Core
         {
             if (!IsUse) throw new NotImplementedException("THis Connection is not used.");
             byte[] sendBytes = protocol.Encode();
-            Socket.BeginSend(sendBytes,0, sendBytes.Length, SocketFlags.None, null, null);
+            Console.WriteLine("发送协议：" + protocol.Expression);
+            Socket.BeginSend(sendBytes, 0, sendBytes.Length, SocketFlags.None, null, null);
         }
 
         public void Close()

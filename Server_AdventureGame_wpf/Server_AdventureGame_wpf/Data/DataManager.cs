@@ -182,7 +182,9 @@ namespace Server_AdventureGame_wpf.Data
 
             using (var db = new UserContext())
             {
-                var queryResult = db.Users.Select<User, bool>((s) => s.Account == account && s.Password == password);
+                var queryResult = from u in db.Users
+                                  where (u.Account == account && u.Password == password)
+                                  select u;
 
                 return queryResult.Count() > 0 ? true : false;
             }
@@ -216,13 +218,17 @@ namespace Server_AdventureGame_wpf.Data
 
             using (var db = new UserContext())
             {
-                var queryResult = db.Users.Where(u => u.Account == account).Select(u => u);
+                var queryResult = from u in db.Users
+                                  where u.Account == account
+                                  select u;
 
                 foreach (var item in queryResult)
                 {
                     item.Password = password;
                     item.LastPd.Add(password);
                 }
+
+                db.SaveChanges();
                 return true;
             }
         }

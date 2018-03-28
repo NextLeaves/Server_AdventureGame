@@ -99,8 +99,7 @@ namespace Server_AdventureGame_wpf.Logic
             ProtocolByte proto = protocol as ProtocolByte;
             string protoName = proto.Name;
             string id = proto.GetString(1);
-            string code_str = proto.GetString(2);
-            string password = string.Empty;
+            string code_str = proto.GetString(2);            
             int code_i = Convert.ToInt32(code_str);
 
             //准备返回协议对象
@@ -129,17 +128,17 @@ namespace Server_AdventureGame_wpf.Logic
             ProtocolByte proto = protocol as ProtocolByte;
             string protoName = proto.Name;
             string id = proto.GetString(1);
-            string password = proto.GetString(2);                        
+            string password = proto.GetString(2);
 
             //准备返回协议对象
             ProtocolByte protoRet = new ProtocolByte();
-            protoRet.AddInfo<string>(NamesOfProtocol.FindPassword);
+            protoRet.AddInfo<string>(NamesOfProtocol.ChangePassword);
 
             //从数据库判断           
             bool isChecked = DataManager.GetSingleton().ChangePassword(id, password);
             if (isChecked)
             {
-                Console.WriteLine($"[FindPassword] User:{id},Info:{conn.RemoteAddress}.");
+                Console.WriteLine($"[ChangePassword] User:{id},Info:{conn.RemoteAddress}.");
                 protoRet.AddInfo<int>(1);
                 conn.Send(protoRet);
                 return;
