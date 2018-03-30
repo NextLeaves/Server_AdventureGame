@@ -9,6 +9,8 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
+using Server_AdventureGame_wpf.Middle;
+
 namespace Server_AdventureGame_wpf.Data
 {
     public class DataManager
@@ -84,28 +86,11 @@ namespace Server_AdventureGame_wpf.Data
                 return false;
             }
 
-            IFormatter formatter = new BinaryFormatter();
-            MemoryStream stream = new MemoryStream();
-            Middle.PlayerData playerData = new Middle.PlayerData();
+            PlayerData data = new PlayerData();
+            data.Score = 100;
+            byte[] bytes = Encoding.Default.GetBytes(data.Score.ToString());
 
-            try
-            {
-                formatter.Serialize(stream, playerData);
-            }
-            catch (IOException ex)
-            {
-                Console.WriteLine("[Error]Create Player Method is error.[Line:75]");
-                Console.WriteLine(ex.Message);
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return false;
-            }
-
-            byte[] byteData = stream.ToArray();
-            Player player = new Player(account, byteData);
+            Player player = new Player(account, bytes);
 
             using (var db = new UserContext())
             {
@@ -116,30 +101,23 @@ namespace Server_AdventureGame_wpf.Data
             return true;
         }
 
-        public Middle.PlayerData GetPlayerData(string account)
+        public byte[] GetPlayerData(string account)
         {
-            Middle.PlayerData playerDataRet = null;
-            IFormatter formatter = new BinaryFormatter();
-            Stream stream = new MemoryStream();
 
-            try
+            using (var db = new UserContext())
             {
-                using (var db = new UserContext())
+                var queryResult = from p in db.PlayerDatas
+                                  where p.Account == account
+                                  select p;
+                if (queryResult.Count() <= 0) return null;
+                foreach (var item in queryResult)
                 {
-                    var queryResult = db.PlayerDatas.Where(p => p.Account == account).Select(p => p);
-                    if (queryResult == null) throw new ArgumentNullException($"PlayerData is null.[Line:128]");
-                    stream.Write((queryResult as Player).Data, 0, (queryResult as Player).Data.Length);
-                    if (stream == null) throw new ArgumentNullException($"PlayerData is null.[Line:128]");
-                    playerDataRet = formatter.Deserialize(stream) as Middle.PlayerData;
+                    if (item.Data != null)
+                        return item.Data;
                 }
-                return playerDataRet;
+                return null;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[Error]Create Player Method is error.[Line:137]");
-                Console.WriteLine(ex.Message);
-                throw new ArgumentNullException($"PlayerData is null.[Line:128]");
-            }
+
 
         }
 
@@ -233,6 +211,60 @@ namespace Server_AdventureGame_wpf.Data
             }
         }
 
+        public bool ClearPlayersTable()
+        {
+            using (var db = new UserContext())
+            {
+                var queryResult = from p in db.PlayerDatas
+                                  select p;
+                if (queryResult.Count() <= 0) return true;
+                foreach (var item in queryResult)
+                {
+                    db.PlayerDatas.Remove(item);
+                }
+                db.SaveChanges();
+                return true;
+            }
+
+        }
+
+        public bool ClearUsersTable()
+        {
+            using (var db = new UserContext())
+            {
+                var queryResult = from p in db.Users
+                                  select p;
+                if (queryResult.Count() <= 0) return true;
+                foreach (var item in queryResult)
+                {
+                    db.Users.Remove(item);
+
+                }
+                db.SaveChanges();
+                return true;
+            }
+        }
+
+        public bool ClearAllTables()
+        {
+            bool isClear = false;
+            if (ClearUsersTable() && ClearPlayersTable())
+                isClear = true;
+            else isClear = false;
+            return isClear;
+        }
+
+        //public byte[] GetPlayerData(string account)
+        //{
+        //    if (!IsSafeString(account)) return null;
+        //    using (var db = new UserContext())
+        //    {
+        //        var queryResult = from p in db.PlayerDatas
+        //                          where p.Account == account
+        //                          select p;
+        //        return (queryResult as Player).Data;
+        //    }            
+        //}
 
     }
 }

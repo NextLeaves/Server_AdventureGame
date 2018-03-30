@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace Server_AdventureGame_wpf.Middle
 {
+    [Serializable]
     public class PlayerData
     {
-        public int? Score { get; set; } = 100;
+        public int Score { get; set; } = 100;
     }
 }

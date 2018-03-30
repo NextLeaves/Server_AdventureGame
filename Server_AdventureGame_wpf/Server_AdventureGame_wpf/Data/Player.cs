@@ -20,5 +20,9 @@ namespace Server_AdventureGame_wpf.Data
             Account = account;
             Data = data;
         }
+        public Player()
+        {
+
+        }
     }
 }

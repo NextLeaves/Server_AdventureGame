@@ -99,7 +99,7 @@ namespace Server_AdventureGame_wpf.Logic
             ProtocolByte proto = protocol as ProtocolByte;
             string protoName = proto.Name;
             string id = proto.GetString(1);
-            string code_str = proto.GetString(2);            
+            string code_str = proto.GetString(2);
             int code_i = Convert.ToInt32(code_str);
 
             //准备返回协议对象
@@ -108,10 +108,10 @@ namespace Server_AdventureGame_wpf.Logic
 
             //从数据库判断           
             bool isChecked = DataManager.GetSingleton().FindoutPassword(id, code_i);
-            if(isChecked)
+            if (isChecked)
             {
                 Console.WriteLine($"[FindPassword] User:{id},Info:{conn.RemoteAddress}.");
-                protoRet.AddInfo<int>(1);                
+                protoRet.AddInfo<int>(1);
                 conn.Send(protoRet);
                 return;
             }
@@ -123,7 +123,7 @@ namespace Server_AdventureGame_wpf.Logic
             }
         }
 
-        public void MsgChangePassword(Connection conn,ProtocolBase protocol)
+        public void MsgChangePassword(Connection conn, ProtocolBase protocol)
         {
             ProtocolByte proto = protocol as ProtocolByte;
             string protoName = proto.Name;
@@ -136,6 +136,61 @@ namespace Server_AdventureGame_wpf.Logic
 
             //从数据库判断           
             bool isChecked = DataManager.GetSingleton().ChangePassword(id, password);
+            if (isChecked)
+            {
+                Console.WriteLine($"[ChangePassword] User:{id},Info:{conn.RemoteAddress}.");
+                protoRet.AddInfo<int>(1);
+                conn.Send(protoRet);
+                return;
+            }
+            else
+            {
+                protoRet.AddInfo<int>(-1);
+                conn.Send(protoRet);
+                return;
+            }
+        }
+
+        public void MsgReadPlayerData(Connection conn, ProtocolBase protocol)
+        {
+            ProtocolByte proto = protocol as ProtocolByte;
+            string protoName = proto.Name;
+            string id = proto.GetString(1);
+
+            //准备返回协议对象
+            ProtocolByte protoRet = new ProtocolByte();
+            protoRet.AddInfo<string>(NamesOfProtocol.ReadPlayerData);
+
+            //从数据库判断           
+            byte[] data = DataManager.GetSingleton().GetPlayerData(id);            
+            if (data != null)
+            {
+                string score = Encoding.Default.GetString(data);
+                Console.WriteLine($"[ChangePassword] User:{id},Info:{conn.RemoteAddress}.");
+                protoRet.AddInfo<string>(score);
+                conn.Send(protoRet);
+                return;
+            }
+            else
+            {
+                protoRet.AddInfo<int>(-1);
+                conn.Send(protoRet);
+                return;
+            }
+        }
+
+        public void MsgCreatePlayer(Connection conn, ProtocolBase protocol)
+        {
+            ProtocolByte proto = protocol as ProtocolByte;
+            string protoName = proto.Name;
+            string id = proto.GetString(1);
+
+            //准备返回协议对象
+            ProtocolByte protoRet = new ProtocolByte();
+            protoRet.AddInfo<string>(NamesOfProtocol.CreatePlayer);
+
+            //从数据库判断           
+            bool isChecked = DataManager.GetSingleton().CreatePlayer(id);
             if (isChecked)
             {
                 Console.WriteLine($"[ChangePassword] User:{id},Info:{conn.RemoteAddress}.");

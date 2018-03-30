@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 using Server_AdventureGame_wpf.Core;
+using Server_AdventureGame_wpf.Data;
 
 namespace Server_AdventureGame_wpf
 {
@@ -32,7 +33,28 @@ namespace Server_AdventureGame_wpf
 
         private void startup_btn_Click(object sender, RoutedEventArgs e)
         {
-            _server.Startup("127.0.0.1", 1234);
-        }        
+            _server.Startup("192.168.1.105", 1234);
+        }
+
+        private void clearUserTable_Click(object sender, RoutedEventArgs e)
+        {
+            if(DataManager.GetSingleton().ClearUsersTable())
+                MessageBox.Show("Clear Successful.");
+            else MessageBox.Show("Clear fail.");
+        }
+
+        private void clearPlayerTable_Click(object sender, RoutedEventArgs e)
+        {
+            if(DataManager.GetSingleton().ClearPlayersTable())
+                MessageBox.Show("Clear Successful.");
+            else MessageBox.Show("Clear fail.");
+        }
+
+        private void clearAllTables_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataManager.GetSingleton().ClearAllTables())
+                MessageBox.Show("Clear Successful.");
+            else MessageBox.Show("Clear fail.");
+        }
     }
 }

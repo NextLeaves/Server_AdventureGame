@@ -53,7 +53,7 @@ namespace Server_AdventureGame_wpf.Core
         public void AddInfo<T>(T message)
         {
             Expression += message.ToString() + " ";
-        }
+        }        
 
         public string GetString(int indexof)
         {
