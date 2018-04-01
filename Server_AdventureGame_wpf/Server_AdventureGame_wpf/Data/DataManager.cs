@@ -78,7 +78,7 @@ namespace Server_AdventureGame_wpf.Data
             return true;
         }
 
-        public bool CreatePlayer(string account)
+        public bool SavePlayer(string account, byte[] data)
         {
             if (!IsSafeString(account))
             {
@@ -86,16 +86,23 @@ namespace Server_AdventureGame_wpf.Data
                 return false;
             }
 
-            PlayerData data = new PlayerData();
-            data.Score = 100;
-            byte[] bytes = Encoding.Default.GetBytes(data.Score.ToString());
-
-            Player player = new Player(account, bytes);
+            Player p = new Player();
+            p.Account = account;
+            p.Data = data;
 
             using (var db = new UserContext())
             {
-                db.PlayerDatas.Add(player);
-
+                var queryRresult = from pl in db.PlayerDatas
+                                   where pl.Account == account
+                                   select pl;
+                if (queryRresult.Count() <= 0)
+                {
+                    db.PlayerDatas.Add(p);
+                }
+                else
+                {
+                    (queryRresult as Player).Data = data;
+                }
                 db.SaveChanges();
             }
             return true;
@@ -119,35 +126,6 @@ namespace Server_AdventureGame_wpf.Data
             }
 
 
-        }
-
-        public bool SavePlayerData(Middle.Player player)
-        {
-            string account_tp = player.Account;
-            Middle.PlayerData playerData_tp = player.Data;
-
-            IFormatter formatter = new BinaryFormatter();
-            MemoryStream stream = new MemoryStream();
-
-            try
-            {
-                formatter.Serialize(stream, playerData_tp);
-                using (var db = new UserContext())
-                {
-                    var queryResult = db.PlayerDatas.Where(p => p.Account == account_tp).Select(p => p);
-                    if (queryResult == null) return false;
-                    (queryResult as Player).Data = stream.ToArray();
-
-                    db.SaveChanges();
-                }
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[Error]Create Player Method is error.[Line:144]");
-                Console.WriteLine(ex.Message);
-                throw new ArgumentNullException($"PlayerData is null.[Line:144]");
-            }
         }
 
         public bool CheckPassword(string account, string password)
@@ -253,18 +231,6 @@ namespace Server_AdventureGame_wpf.Data
             else isClear = false;
             return isClear;
         }
-
-        //public byte[] GetPlayerData(string account)
-        //{
-        //    if (!IsSafeString(account)) return null;
-        //    using (var db = new UserContext())
-        //    {
-        //        var queryResult = from p in db.PlayerDatas
-        //                          where p.Account == account
-        //                          select p;
-        //        return (queryResult as Player).Data;
-        //    }            
-        //}
 
     }
 }

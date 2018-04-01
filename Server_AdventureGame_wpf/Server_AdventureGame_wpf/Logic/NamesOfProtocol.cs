@@ -14,8 +14,8 @@ namespace Server_AdventureGame_wpf.Logic
         public const string Logout = "Logout";
         public const string FindPassword = "FindPassword";
         public const string ChangePassword = "ChangePassword";
-        public const string ReadPlayerData = "ReadPlayerData";
-        public const string CreatePlayer = "CreatePlayer";
+        public const string ReceivePlayerData = "ReceivePlayerData";
+        public const string SendPlayerData = "SendPlayerData";
 
     }
 }

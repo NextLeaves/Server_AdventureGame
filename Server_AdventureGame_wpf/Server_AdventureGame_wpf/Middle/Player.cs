@@ -57,14 +57,6 @@ namespace Server_AdventureGame_wpf.Middle
             //事件处理
             Server._instance._playerEventHandle.OnLogout(this);
 
-            //保存数据
-            bool isChecked = DataManager.GetSingleton().SavePlayerData(this);
-            if (!isChecked)
-            {
-                Debug.WriteLine($"[Error]{Conn.RemoteAddress}|{this.Account}:Save PlayerData is error");
-                return false;
-            }
-
             Console.WriteLine($"[Logout]{Conn.RemoteAddress}|{this.Account}:logout processed.");
             Conn.Player = null;
             Conn.Close();

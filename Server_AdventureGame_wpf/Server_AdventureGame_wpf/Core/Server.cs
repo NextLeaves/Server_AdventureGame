@@ -267,7 +267,7 @@ namespace Server_AdventureGame_wpf.Core
                     Console.WriteLine($"[Disconnected] Client:{conn.RemoteAddress}.");
                     conn.Close();
                 }
-            }
+            }                  
         }
 
     }
