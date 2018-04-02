@@ -51,7 +51,6 @@ namespace Server_AdventureGame_wpf.Logic
         public void MsgLogin(Connection conn, ProtocolBase protocol)
         {
             ProtocolByte proto = protocol as ProtocolByte;
-            string protoName = proto.Name;
             string id = proto.GetString(1);
             string pw = proto.GetString(2);
 
@@ -64,6 +63,9 @@ namespace Server_AdventureGame_wpf.Logic
 
             if (isChecked)
             {
+                Middle.Player playerMiddle = new Middle.Player(id, conn);
+                conn.Player = playerMiddle;
+
                 Console.WriteLine($"[Conected] User:{id},Info:{conn.RemoteAddress}.");
                 protoRet.AddInfo<int>(1);
                 conn.Send(protoRet);
@@ -74,6 +76,34 @@ namespace Server_AdventureGame_wpf.Logic
                 protoRet.AddInfo<int>(0);
                 conn.Send(protoRet);
                 return;
+            }
+        }
+
+        public void MsgReceivePlayerData(Connection conn, ProtocolBase protocol)
+        {
+            ProtocolByte proto = protocol as ProtocolByte;
+            string protoName = proto.Name;
+            string id = proto.GetString(1);
+
+            //准备返回协议对象
+            ProtocolByte protoRet = new ProtocolByte();
+            protoRet.AddInfo<string>(NamesOfProtocol.ReceivePlayerData);
+
+            //从数据库判断           
+            byte[] data = DataManager.GetSingleton().GetPlayerData(id);
+            if (data != null)
+            {
+                conn.Player.Data = data;
+
+                string tempS = Encoding.Default.GetString(data);
+                Console.WriteLine($"[ReceivePlayerData] User:{id},Info:{conn.RemoteAddress}.");
+                protoRet.AddInfo<string>(tempS);
+                conn.Send(protoRet);
+            }
+            else
+            {
+                protoRet.AddInfo<int>(-1);
+                conn.Send(protoRet);
             }
         }
 
@@ -150,62 +180,6 @@ namespace Server_AdventureGame_wpf.Logic
                 return;
             }
         }
-
-        public void MsgReceivePlayerData(Connection conn, ProtocolBase protocol)
-        {
-            ProtocolByte proto = protocol as ProtocolByte;
-            string protoName = proto.Name;
-            string id = proto.GetString(1);
-
-            //准备返回协议对象
-            ProtocolByte protoRet = new ProtocolByte();
-            protoRet.AddInfo<string>(NamesOfProtocol.ReceivePlayerData);
-
-            //从数据库判断           
-            byte[] data = DataManager.GetSingleton().GetPlayerData(id);
-            if (data != null)
-            {
-                string tempS = Encoding.Default.GetString(data);
-                Console.WriteLine($"[ReceivePlayerData] User:{id},Info:{conn.RemoteAddress}.");
-                protoRet.AddInfo<string>(tempS);
-                conn.Send(protoRet);
-                return;
-            }
-            else
-            {
-                protoRet.AddInfo<int>(-1);
-                conn.Send(protoRet);
-                return;
-            }
-        }
-
-        public void MsgSendPlayerData(Connection conn, ProtocolBase protocol)
-        {
-            ProtocolByte proto = protocol as ProtocolByte;
-            string protoName = proto.Name;
-            string id = proto.GetString(1);
-            byte[] data = Encoding.Default.GetBytes(proto.GetString(2));
-
-            //准备返回协议对象
-            ProtocolByte protoRet = new ProtocolByte();
-            protoRet.AddInfo<string>(NamesOfProtocol.SendPlayerData);
-
-            //从数据库判断           
-            bool isChecked = DataManager.GetSingleton().SavePlayer(id, data);
-            if (isChecked)
-            {
-                Console.WriteLine($"[SendPlayerData] User:{id},Info:{conn.RemoteAddress}.");
-                protoRet.AddInfo<int>(1);
-                conn.Send(protoRet);
-                return;
-            }
-            else
-            {
-                protoRet.AddInfo<int>(-1);
-                conn.Send(protoRet);
-                return;
-            }
-        }
-
+              
     }
 }

@@ -54,7 +54,7 @@ namespace Server_AdventureGame_wpf.Core
                 return _instance;
             }
 
-        }        
+        }
 
         public int ContributeIndex()
         {
@@ -188,7 +188,7 @@ namespace Server_AdventureGame_wpf.Core
             string methodName = "Msg" + name;
 
             //连接协议分发
-            if (conn.Player == null || name == "HeartBeat" || name == "Logout")
+            if (conn.Player == null || conn.Player.Data == null || name == "HeartBeat" || name == "Logout")
             {
                 MethodInfo mInfo = _connMsgHandle.GetType().GetMethod(methodName);
                 if (mInfo == null)
@@ -267,7 +267,7 @@ namespace Server_AdventureGame_wpf.Core
                     Console.WriteLine($"[Disconnected] Client:{conn.RemoteAddress}.");
                     conn.Close();
                 }
-            }                  
+            }
         }
 
     }
