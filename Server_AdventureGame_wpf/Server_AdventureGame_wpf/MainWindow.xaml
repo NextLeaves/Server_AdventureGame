@@ -11,5 +11,7 @@
         <Button x:Name="clearUserTable" Content="ClearUser" HorizontalAlignment="Left" Margin="64,173,0,0" VerticalAlignment="Top" Width="75" Click="clearUserTable_Click"/>
         <Button x:Name="clearPlayerTable" Content="ClearPlayer" HorizontalAlignment="Left" Margin="64,242,0,0" VerticalAlignment="Top" Width="75" Click="clearPlayerTable_Click"/>
         <Button x:Name="clearAllTables" Content="ClearAllTables" HorizontalAlignment="Left" Margin="174,212,0,0" VerticalAlignment="Top" Width="102" Click="clearAllTables_Click"/>
+        <Button x:Name="print_btn" Content="Print" HorizontalAlignment="Left" Margin="64,321,0,0" VerticalAlignment="Top" Width="75" Click="print_btn_Click"/>
+        <TextBox x:Name="info_txtbox" HorizontalAlignment="Left" Height="399" Margin="281,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="501"/>
     </Grid>
 </Window>

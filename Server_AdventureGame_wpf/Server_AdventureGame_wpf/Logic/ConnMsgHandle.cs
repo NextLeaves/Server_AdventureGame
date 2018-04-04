@@ -180,6 +180,34 @@ namespace Server_AdventureGame_wpf.Logic
                 return;
             }
         }
-              
+
+        public void MsgSendPlayerData(Connection conn, ProtocolBase protocol)
+        {
+            ProtocolByte proto = protocol as ProtocolByte;
+            string protoName = proto.Name;
+            string id = proto.GetString(1);
+            byte[] data = Encoding.Default.GetBytes(proto.GetString(2));
+
+            //准备返回协议对象
+            ProtocolByte protoRet = new ProtocolByte();
+            protoRet.AddInfo<string>(NamesOfProtocol.SendPlayerData);
+
+            //从数据库判断           
+            bool isChecked = DataManager.GetSingleton().SavePlayer(id, data);
+            if (isChecked)
+            {
+                Console.WriteLine($"[SendPlayerData] User:{id},Info:{conn.RemoteAddress}.");
+                protoRet.AddInfo<int>(1);
+                conn.Send(protoRet);
+                return;
+            }
+            else
+            {
+                protoRet.AddInfo<int>(-1);
+                conn.Send(protoRet);
+                return;
+            }
+        }
+        
     }
 }

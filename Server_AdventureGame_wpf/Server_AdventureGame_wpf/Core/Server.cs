@@ -17,7 +17,7 @@ namespace Server_AdventureGame_wpf.Core
     {
         public static Server _instance = new Server();
 
-        public string Expression { get; set; } = "No Expression";
+        public string Expression { get; set; } = "Server_001";
         public Socket Listenfb { get; set; }
         public Connection[] conns { get; set; }
         public int MaxCapacity { get; set; } = 50;
@@ -150,7 +150,7 @@ namespace Server_AdventureGame_wpf.Core
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[Exception] ReceiveCb Method is error.");
+                Console.WriteLine("[Exception] ReceiveCb Method is error.line : 153");
                 Console.WriteLine($"[Error Info] {ex.Message}");
             }
         }
@@ -188,7 +188,7 @@ namespace Server_AdventureGame_wpf.Core
             string methodName = "Msg" + name;
 
             //连接协议分发
-            if (conn.Player == null || conn.Player.Data == null || name == "HeartBeat" || name == "Logout")
+            if (conn.Player == null || name == "HeartBeat" || name == "Logout")
             {
                 MethodInfo mInfo = _connMsgHandle.GetType().GetMethod(methodName);
                 if (mInfo == null)
@@ -210,7 +210,7 @@ namespace Server_AdventureGame_wpf.Core
                     return;
                 }
 
-                object[] objs = new object[] { conn.Player, protocol };
+                object[] objs = new object[] { conn, protocol };
                 Console.WriteLine($"[PlayerHandle] {conn.Player.Account} : {name}.");
                 mInfo.Invoke(_playerMsgHandle, objs);
             }
@@ -237,23 +237,35 @@ namespace Server_AdventureGame_wpf.Core
 
         public void Broadcast(ProtocolBase protocol)
         {
+            ProtocolByte proto = protocol as ProtocolByte;
+            string id = proto.GetString(1);
             foreach (Connection conn in conns)
             {
                 if (!conn.IsUse) continue;
+                if (conn.Player.Account == id) continue;
                 Send(conn, protocol);
             }
         }
 
-        public void PrintInformation()
+        public string PrintInformation()
         {
+            StringBuilder sb = new StringBuilder();
             Console.WriteLine("---Server Login Infomation---");
             foreach (Connection conn in conns)
             {
                 if (conn == null) continue;
                 if (!conn.IsUse) continue;
-                if (conn.Player == null) Console.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id is not read.");
-                Console.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id:{conn.Player.Account}.");
+                if (conn.Player == null)
+                {
+                    Console.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id is not read.");
+                    continue;
+                }
+               
+                string msg = $"[Connected]Player Ip:{conn.RemoteAddress},Player Id:{conn.Player.Account}.";
+                Console.WriteLine(msg);
+                sb.Append(msg);
             }
+            return sb.ToString();
         }
 
         public void Close()

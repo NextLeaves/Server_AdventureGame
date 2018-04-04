@@ -14,7 +14,7 @@ namespace Server_AdventureGame_wpf.Logic
 
         public void MsgSendOriginPos(Connection conn, ProtocolBase protocol)
         {
-            ProtocolByte proto = protocol as ProtocolByte;            
+            ProtocolByte proto = protocol as ProtocolByte;
             string id = proto.GetString(1);
             string x = proto.GetString(2);
             string y = proto.GetString(3);
@@ -88,6 +88,11 @@ namespace Server_AdventureGame_wpf.Logic
                 conn.Send(protoRet);
                 return;
             }
+        }
+
+        public void MsgUpdatePosition(Connection conn, ProtocolBase protocol)
+        {
+            Server._instance.Broadcast(protocol);
         }
     }
 }

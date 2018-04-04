@@ -38,14 +38,14 @@ namespace Server_AdventureGame_wpf
 
         private void clearUserTable_Click(object sender, RoutedEventArgs e)
         {
-            if(DataManager.GetSingleton().ClearUsersTable())
+            if (DataManager.GetSingleton().ClearUsersTable())
                 MessageBox.Show("Clear Successful.");
             else MessageBox.Show("Clear fail.");
         }
 
         private void clearPlayerTable_Click(object sender, RoutedEventArgs e)
         {
-            if(DataManager.GetSingleton().ClearPlayersTable())
+            if (DataManager.GetSingleton().ClearPlayersTable())
                 MessageBox.Show("Clear Successful.");
             else MessageBox.Show("Clear fail.");
         }
@@ -55,6 +55,11 @@ namespace Server_AdventureGame_wpf
             if (DataManager.GetSingleton().ClearAllTables())
                 MessageBox.Show("Clear Successful.");
             else MessageBox.Show("Clear fail.");
+        }
+
+        private void print_btn_Click(object sender, RoutedEventArgs e)
+        {
+            info_txtbox.Text = Server._instance.PrintInformation();
         }
     }
 }
