@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace Server_AdventureGame_wpf
 {
-    public class Sys
+    public static class Sys
     {
+        public static StringBuilder sb_Log = new StringBuilder();
+
         public static double GetTimeStamp()
         {
             TimeSpan time = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0);

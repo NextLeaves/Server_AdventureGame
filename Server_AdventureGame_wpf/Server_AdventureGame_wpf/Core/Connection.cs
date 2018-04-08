@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 
 using Server_AdventureGame_wpf.Middle;
+using System.Diagnostics;
 
 namespace Server_AdventureGame_wpf.Core
 {
@@ -48,16 +49,16 @@ namespace Server_AdventureGame_wpf.Core
         {
             if (!IsUse) throw new NotImplementedException("THis Connection is not used.");
             byte[] sendBytes = protocol.Encode();
-            Console.WriteLine("发送协议：" + protocol.Expression);
+            Debug.WriteLine("发送协议：" + protocol.Expression);
             Socket.BeginSend(sendBytes, 0, sendBytes.Length, SocketFlags.None, null, null);
         }
 
         public void Close()
         {
             if (!IsUse) Console.WriteLine("[Error] Not Use.");
-            Console.WriteLine($"[Disconnection] Client:{RemoteAddress}.");
-            Socket.Shutdown(SocketShutdown.Both);
-            Socket.Close();
+            Debug.WriteLine($"[Disconnection] Client:{RemoteAddress}.");
+            Sys.sb_Log.Append($"[Disconnection] Client:{RemoteAddress}.");
+            Socket.Shutdown(SocketShutdown.Both);            
             IsUse = false;
         }
     }

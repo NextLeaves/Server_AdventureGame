@@ -31,24 +31,12 @@ namespace Server_AdventureGame_wpf.Middle
             Server.GetUniqueServer().Send(Conn, protocol);
         }
 
-        public static bool KickOff(string account, ProtocolBase protocol)
+        public void KickOff(Connection conn)
         {
-            foreach (Connection conn in Server.GetUniqueServer().conns)
-            {
-                if (conn == null) continue;
-                if (!conn.IsUse) continue;
-                if (conn.Player == null) continue;
-                if (conn.Player.Account == account)
-                {
-                    lock (conn.Player)
-                    {
-                        if (protocol != null)
-                            conn.Player.Send(protocol);
-                        return conn.Player.Logout();
-                    }
-                }
-            }
-            return true;
+            ProtocolByte protocol = new ProtocolByte();
+            protocol.AddInfo<string>(Logic.NamesOfProtocol.Kickoff);
+            conn.Send(protocol);
+            this.Logout();
         }
 
         public bool Logout()
@@ -56,7 +44,8 @@ namespace Server_AdventureGame_wpf.Middle
             //事件处理
             Server._instance._playerEventHandle.OnLogout(this);
 
-            Console.WriteLine($"[Logout]{Conn.RemoteAddress}|{this.Account}:logout processed.");
+            Trace.WriteLine($"[Logout]{Conn.RemoteAddress}|{this.Account}:logout processed.");
+            Sys.sb_Log.Append($"[Logout]{Conn.RemoteAddress}|{this.Account}:logout processed.");
             Conn.Player = null;
             Conn.Close();
             return true;

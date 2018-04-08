@@ -86,7 +86,10 @@ namespace Server_AdventureGame_wpf
 
         private void print_btn_Click(object sender, RoutedEventArgs e)
         {
+            info_txtbox.Text = "";
             info_txtbox.Text = Server._instance.PrintInformation();
+            info_txtbox.Text += "\n";
+            info_txtbox.Text += Sys.sb_Log.ToString();
         }
     }
 }

@@ -18,5 +18,6 @@ namespace Server_AdventureGame_wpf.Logic
         public const string SendPlayerData = "SendPlayerData";
         public const string SendOriginPos = "SendOriginPos";
         public const string UpdatePosition = "UpdatePosition";
+        public const string Kickoff = "Kickoff";
     }
 }

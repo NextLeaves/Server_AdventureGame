@@ -56,7 +56,7 @@ namespace Server_AdventureGame_wpf.Logic
                 Middle.PlayerScore socre = DataManager.GetSingleton().ConvertData(data);
                 conn.Player.Data = data;
 
-                Console.WriteLine($"[ReceivePlayerData] User:{id},Info:{conn.RemoteAddress}.");
+                Debug.WriteLine($"[ReceivePlayerData] User:{id},Info:{conn.RemoteAddress}.");
                 protoRet.AddInfo<string>(id);
                 protoRet.AddInfo<int>(socre.Coin);
                 protoRet.AddInfo<int>(socre.Money);
@@ -123,12 +123,12 @@ namespace Server_AdventureGame_wpf.Logic
             isSend = Server._instance.Broadcast(id, score);
             if (isSend)
             {
-                Debug.Write($"[Update Data]Account:{id}'s score is refresh.");
+                Debug.WriteLine($"[Update Data]Account:{id}'s score is refresh.");
                 return;
             }
             else
             {
-                Debug.Write($"[Update Data Error]Account:{id}'s score is not refresh.");
+                Debug.WriteLine($"[Update Data Error]Account:{id}'s score is not refresh.");
                 return;
             }
         }

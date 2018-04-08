@@ -10,6 +10,7 @@ using System.Timers;
 using System.Reflection;
 
 using Server_AdventureGame_wpf.Logic;
+using System.Diagnostics;
 
 namespace Server_AdventureGame_wpf.Core
 {
@@ -116,13 +117,14 @@ namespace Server_AdventureGame_wpf.Core
                 if (index < 0)
                 {
                     targetSocket.Close();
-                    Console.WriteLine("[Warning] This server is full.");
+                    Trace.WriteLine("[Warning] This server is full.");
                 }
                 else
                 {
                     Connection conn = conns[index];
                     conn.Initialize(targetSocket);
-                    Console.WriteLine($"[Info] Server is connected client:{conn.RemoteAddress}.");
+                    Debug.WriteLine($"[Info] Server is connected client:{conn.RemoteAddress}.");
+                    Sys.sb_Log.Append($"[Info] Server is connected client:{conn.RemoteAddress}.");
                     conn.Socket.BeginReceive(conn.BufferRead, conn.BufferCount, conn.BufferRemain, SocketFlags.None, ReceiveCb, conn);
                 }
 
@@ -130,8 +132,8 @@ namespace Server_AdventureGame_wpf.Core
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[Exception] AcceptCb Method is error.");
-                Console.WriteLine($"[Error Info] {ex.Message}");
+                Debug.WriteLine("[Exception] AcceptCb Method is error.");
+                Trace.Assert(ex == null, $"[Error Info] {ex.Message}");
             }
         }
 
@@ -150,8 +152,7 @@ namespace Server_AdventureGame_wpf.Core
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[Exception] ReceiveCb Method is error.line : 153");
-                Console.WriteLine($"[Error Info] {ex.Message}");
+                Debug.WriteLine("[Exception] ReceiveCb Method is error.line : 153.");                
             }
         }
 
@@ -280,22 +281,53 @@ namespace Server_AdventureGame_wpf.Core
             return false;
         }
 
+        public bool OnLogining(string account)
+        {
+            foreach (var item in conns)
+            {
+                if (!item.IsUse) continue;
+                if (item.Player == null) continue;
+                if (item.Player.Account == account)
+                {
+                    Trace.WriteLine($"[Kickoff]Account:{account}.");
+                    Sys.sb_Log.Append($"[Kickoff]Account:{account}.");
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public Connection OnLoginned(string account)
+        {
+            foreach (var item in conns)
+            {
+                if (!item.IsUse) continue;
+                if (item.Player == null) continue;
+                if (item.Player.Account == account)
+                {
+                    Trace.WriteLine($"[Kickoff]Account:{account}.");
+                    Sys.sb_Log.Append($"[Kickoff]Account:{account}.");
+                    return item;
+                }
+            }
+            throw new NullReferenceException("Logining is error.conn is not exsit.");
+        }
+
         public string PrintInformation()
         {
             StringBuilder sb = new StringBuilder();
-            Console.WriteLine("---Server Login Infomation---");
             foreach (Connection conn in conns)
             {
                 if (conn == null) continue;
                 if (!conn.IsUse) continue;
                 if (conn.Player == null)
                 {
-                    Console.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id is not read.");
+                    Debug.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id is not read.");
                     continue;
                 }
 
                 string msg = $"[Connected]Player Ip:{conn.RemoteAddress},Player Id:{conn.Player.Account}.";
-                Console.WriteLine(msg);
+                Debug.WriteLine(msg);
                 sb.Append(msg);
             }
             return sb.ToString();

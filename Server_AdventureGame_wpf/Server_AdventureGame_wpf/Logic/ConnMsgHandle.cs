@@ -32,7 +32,8 @@ namespace Server_AdventureGame_wpf.Logic
             if (isChecked)
             {
                 DataManager.GetSingleton().Register(id, pw, out code);
-                Console.WriteLine($"[Register] User:{id},Info:{conn.RemoteAddress}.");
+                Trace.WriteLine($"[Register] User:{id},Info:{conn.RemoteAddress}.");
+                Sys.sb_Log.Append($"[Register] User:{id},Info:{conn.RemoteAddress}.");
                 protoRet.AddInfo<int>(1);
                 protoRet.AddInfo<int>(code);
                 conn.Send(protoRet);
@@ -61,10 +62,20 @@ namespace Server_AdventureGame_wpf.Logic
 
             if (isChecked)
             {
+                bool isLogin = Server._instance.OnLogining(id);
+                if (isLogin)
+                {
+                    Connection pre_conn = Server._instance.OnLoginned(id);
+                    pre_conn.Player.KickOff(pre_conn);
+                    return;
+                }
+
+
                 Middle.Player playerMiddle = new Middle.Player(id, conn);
                 conn.Player = playerMiddle;
 
-                Console.WriteLine($"[Conected] User:{id},Info:{conn.RemoteAddress}.");
+                Trace.WriteLine($"[Conected] User:{id},Info:{conn.RemoteAddress}.");
+                Sys.sb_Log.Append($"[Conected] User:{id},Info:{conn.RemoteAddress}.");
                 protoRet.AddInfo<int>(1);
                 conn.Send(protoRet);
                 return;
@@ -110,7 +121,8 @@ namespace Server_AdventureGame_wpf.Logic
             bool isChecked = DataManager.GetSingleton().FindoutPassword(id, code_i);
             if (isChecked)
             {
-                Console.WriteLine($"[FindPassword] User:{id},Info:{conn.RemoteAddress}.");
+                Trace.WriteLine($"[FindPassword] User:{id},Info:{conn.RemoteAddress}.");
+                Sys.sb_Log.Append($"[FindPassword] User:{id},Info:{conn.RemoteAddress}.");
                 protoRet.AddInfo<int>(1);
                 conn.Send(protoRet);
                 return;
@@ -138,7 +150,8 @@ namespace Server_AdventureGame_wpf.Logic
             bool isChecked = DataManager.GetSingleton().ChangePassword(id, password);
             if (isChecked)
             {
-                Console.WriteLine($"[ChangePassword] User:{id},Info:{conn.RemoteAddress}.");
+                Trace.WriteLine($"[ChangePassword] User:{id},Info:{conn.RemoteAddress}.");
+                Sys.sb_Log.Append($"[ChangePassword] User:{id},Info:{conn.RemoteAddress}.");
                 protoRet.AddInfo<int>(1);
                 conn.Send(protoRet);
                 return;
@@ -149,7 +162,7 @@ namespace Server_AdventureGame_wpf.Logic
                 conn.Send(protoRet);
                 return;
             }
-        }                
+        }
 
         public void MsgSendPlayerData(Connection conn, ProtocolBase protocol)
         {
@@ -166,7 +179,8 @@ namespace Server_AdventureGame_wpf.Logic
             bool isChecked = DataManager.GetSingleton().SavePlayer(id, data);
             if (isChecked)
             {
-                Console.WriteLine($"[SendPlayerData] User:{id},Info:{conn.RemoteAddress}.");
+                Trace.WriteLine($"[SendPlayerData] User:{id},Info:{conn.RemoteAddress}.");
+                Sys.sb_Log.Append($"[SendPlayerData] User:{id},Info:{conn.RemoteAddress}.");
                 protoRet.AddInfo<int>(1);
                 conn.Send(protoRet);
                 return;
