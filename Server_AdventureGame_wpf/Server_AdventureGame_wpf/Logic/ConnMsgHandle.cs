@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Text;
-using System.Threading.Tasks;
 
 using Server_AdventureGame_wpf.Core;
 using Server_AdventureGame_wpf.Data;
@@ -79,34 +77,6 @@ namespace Server_AdventureGame_wpf.Logic
             }
         }
 
-        public void MsgReceivePlayerData(Connection conn, ProtocolBase protocol)
-        {
-            ProtocolByte proto = protocol as ProtocolByte;
-            string protoName = proto.Name;
-            string id = proto.GetString(1);
-
-            //准备返回协议对象
-            ProtocolByte protoRet = new ProtocolByte();
-            protoRet.AddInfo<string>(NamesOfProtocol.ReceivePlayerData);
-
-            //从数据库判断           
-            byte[] data = DataManager.GetSingleton().GetPlayerData(id);
-            if (data != null)
-            {
-                conn.Player.Data = data;
-
-                string tempS = Encoding.Default.GetString(data);
-                Console.WriteLine($"[ReceivePlayerData] User:{id},Info:{conn.RemoteAddress}.");
-                protoRet.AddInfo<string>(tempS);
-                conn.Send(protoRet);
-            }
-            else
-            {
-                protoRet.AddInfo<int>(-1);
-                conn.Send(protoRet);
-            }
-        }
-
         public void MsgLogout(Connection conn, ProtocolBase protocol)
         {
             ProtocolByte proto = new ProtocolByte();
@@ -179,7 +149,7 @@ namespace Server_AdventureGame_wpf.Logic
                 conn.Send(protoRet);
                 return;
             }
-        }
+        }                
 
         public void MsgSendPlayerData(Connection conn, ProtocolBase protocol)
         {
@@ -208,6 +178,6 @@ namespace Server_AdventureGame_wpf.Logic
                 return;
             }
         }
-        
+
     }
 }

@@ -234,7 +234,10 @@ namespace Server_AdventureGame_wpf.Core
             }
 
         }
-
+        /// <summary>
+        /// 全局发送协议
+        /// </summary>
+        /// <param name="protocol">协议对象</param>
         public void Broadcast(ProtocolBase protocol)
         {
             ProtocolByte proto = protocol as ProtocolByte;
@@ -242,9 +245,39 @@ namespace Server_AdventureGame_wpf.Core
             foreach (Connection conn in conns)
             {
                 if (!conn.IsUse) continue;
+                if (conn.Player == null) continue;
                 if (conn.Player.Account == id) continue;
                 Send(conn, protocol);
             }
+        }
+        /// <summary>
+        /// 全局寻找缓存池内conn的引用
+        /// </summary>
+        /// <param name="value">赋值初识位置</param>
+        public void Broadcast(string id, Middle.Vector3 position)
+        {
+            foreach (Connection conn in conns)
+            {
+                if (!conn.IsUse) continue;
+                if (conn.Player.Account == id)
+                {
+                    conn.Player.Tempdata.Postion = position;
+                }
+            }
+        }
+
+        public bool Broadcast(string id, Middle.PlayerScore score)
+        {
+            foreach (Connection conn in conns)
+            {
+                if (!conn.IsUse) continue;
+                if (conn.Player.Account == id)
+                {
+                    conn.Player.Tempdata.Score = score;
+                    return true;
+                }
+            }
+            return false;
         }
 
         public string PrintInformation()
@@ -260,7 +293,7 @@ namespace Server_AdventureGame_wpf.Core
                     Console.WriteLine($"[Connected]Player Ip:{conn.RemoteAddress},Player Id is not read.");
                     continue;
                 }
-               
+
                 string msg = $"[Connected]Player Ip:{conn.RemoteAddress},Player Id:{conn.Player.Account}.";
                 Console.WriteLine(msg);
                 sb.Append(msg);

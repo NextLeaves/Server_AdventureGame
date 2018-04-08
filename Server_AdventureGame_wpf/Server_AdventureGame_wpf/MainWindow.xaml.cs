@@ -13,6 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using System.Threading;
+
 using Server_AdventureGame_wpf.Core;
 using Server_AdventureGame_wpf.Data;
 
@@ -24,11 +26,12 @@ namespace Server_AdventureGame_wpf
     public partial class MainWindow : Window
     {
         private Server _server;
+        private Thread th;
 
         public MainWindow()
         {
-            _server = Server._instance;
             InitializeComponent();
+            _server = Server._instance;
         }
 
         private void startup_btn_Click(object sender, RoutedEventArgs e)
@@ -38,6 +41,14 @@ namespace Server_AdventureGame_wpf
 
         private void clearUserTable_Click(object sender, RoutedEventArgs e)
         {
+
+            th = new Thread(ClearUserTable);
+            th.Start();
+
+        }
+
+        private void ClearUserTable()
+        {
             if (DataManager.GetSingleton().ClearUsersTable())
                 MessageBox.Show("Clear Successful.");
             else MessageBox.Show("Clear fail.");
@@ -45,12 +56,28 @@ namespace Server_AdventureGame_wpf
 
         private void clearPlayerTable_Click(object sender, RoutedEventArgs e)
         {
+
+            th = new Thread(ClearPlayerTable);
+            th.Start();
+
+        }
+
+        private void ClearPlayerTable()
+        {
             if (DataManager.GetSingleton().ClearPlayersTable())
                 MessageBox.Show("Clear Successful.");
             else MessageBox.Show("Clear fail.");
         }
 
         private void clearAllTables_Click(object sender, RoutedEventArgs e)
+        {
+
+            th = new Thread(ClearAllTables);
+            th.Start();
+
+        }
+
+        private void ClearAllTables()
         {
             if (DataManager.GetSingleton().ClearAllTables())
                 MessageBox.Show("Clear Successful.");

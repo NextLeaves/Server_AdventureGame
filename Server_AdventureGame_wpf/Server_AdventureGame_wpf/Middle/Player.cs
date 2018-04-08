@@ -16,12 +16,13 @@ namespace Server_AdventureGame_wpf.Middle
     {
         public string Account { get; set; }
         public Connection Conn { get; set; }
-        public byte[] Data { get; set; }        
+        public byte[] Data { get; set; }
+        public TempData Tempdata { get; set; } = new TempData();
 
         public Player(string account, Connection conn)
         {
             Account = account;
-            this.Conn = conn;            
+            this.Conn = conn;
         }
 
         public void Send(ProtocolBase protocol)

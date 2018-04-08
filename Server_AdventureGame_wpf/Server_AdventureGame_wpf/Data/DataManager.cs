@@ -24,13 +24,6 @@ namespace Server_AdventureGame_wpf.Data
 
         public static DataManager GetSingleton()
         {
-            if (_instance != null)
-            {
-                lock (_instance)
-                {
-                    return _instance ?? new DataManager();
-                }
-            }
             return _instance;
         }
 
@@ -78,6 +71,12 @@ namespace Server_AdventureGame_wpf.Data
             return true;
         }
 
+        public bool CreatePlayerData(string account)
+        {
+            Middle.PlayerScore score = new Middle.PlayerScore(100, 100, 100, 100);
+            return SavePlayer(account, DataManager.GetSingleton().ConvertScore(score));
+        }
+
         public bool SavePlayer(string account, byte[] data)
         {
             if (!IsSafeString(account))
@@ -101,7 +100,10 @@ namespace Server_AdventureGame_wpf.Data
                 }
                 else
                 {
-                    (queryRresult as Player).Data = data;
+                    foreach (var item in queryRresult)
+                    {
+                        item.Data = data;
+                    }
                 }
                 db.SaveChanges();
             }
@@ -186,6 +188,28 @@ namespace Server_AdventureGame_wpf.Data
 
                 db.SaveChanges();
                 return true;
+            }
+        }
+
+        public Middle.PlayerScore ConvertData(byte[] originData)
+        {
+            using (MemoryStream ms = new MemoryStream(originData))
+            {
+                BinaryFormatter bf = new BinaryFormatter();
+                PlayerScore socre = bf.Deserialize(ms) as PlayerScore;
+                if (socre == null) throw new IOException($"[Error]ConvertData is fail.");
+                return socre;
+            }
+        }
+
+        public byte[] ConvertScore(PlayerScore score)
+        {
+            using (Stream ms = new MemoryStream())
+            {
+                BinaryFormatter bf = new BinaryFormatter();
+                bf.Serialize(ms, score);
+                if (ms == null) throw new IOException($"[Error]ConvertPlayerdata is fail.");
+                return (ms as MemoryStream).ToArray();
             }
         }
 
